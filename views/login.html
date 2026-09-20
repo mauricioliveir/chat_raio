@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1B1740">
+  <meta name="color-scheme" content="light dark">
+  <title>Só nós · Entrar</title>
+
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="pagina-login">
+  <main class="login">
+    <div class="venn" aria-hidden="true">
+      <span class="circulo circulo-a"></span>
+      <span class="circulo circulo-b"></span>
+    </div>
+
+    <h1>Só nós</h1>
+    <p class="subtitulo">Entre para continuar a conversa.</p>
+
+    <form id="form-login" novalidate>
+      <label class="campo-texto">
+        <span>Usuário</span>
+        <input id="login" name="username" type="text" autocomplete="username"
+               autocapitalize="none" autocorrect="off" spellcheck="false" required autofocus>
+      </label>
+
+      <label class="campo-texto">
+        <span>Senha</span>
+        <input id="senha" name="password" type="password" autocomplete="current-password" required>
+      </label>
+
+      <p id="erro" class="erro-login" role="alert" hidden></p>
+
+      <button id="entrar" class="botao" type="submit">Entrar</button>
+    </form>
+  </main>
+
+  <script src="/js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#1B1740">
+  <meta name="color-scheme" content="light dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Só nós">
+  <title>Só nós</title>
+
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="pagina-chat">
+  <div class="app" id="app">
+
+    <header class="cabecalho">
+      <div class="avatar" id="avatar" aria-hidden="true"><span id="inicial"></span></div>
+      <div class="identidade">
+        <h1 id="nome-parceiro">&nbsp;</h1>
+        <p id="status" class="status" aria-live="polite">conectando…</p>
+      </div>
+      <button id="sair" class="botao-texto" type="button">Sair</button>
+    </header>
+
+    <div id="faixa" class="faixa" role="status" hidden>Sem conexão. Tentando reconectar…</div>
+
+    <div id="aviso-notif" class="faixa faixa-acao" hidden>
+      <span>Receber um aviso quando chegar mensagem?</span>
+      <span class="faixa-botoes">
+        <button id="notif-sim" type="button" class="mini">Ativar avisos</button>
+        <button id="notif-nao" type="button" class="mini mini-suave">Agora não</button>
+      </span>
+    </div>
+
+    <main id="mensagens" class="mensagens" tabindex="-1" aria-label="Conversa">
+      <p id="topo" class="carregando-topo" hidden>Carregando mensagens anteriores…</p>
+
+      <p id="vazio" class="vazio" hidden>Nenhuma mensagem ainda.<br>Escreva a primeira.</p>
+
+      <div id="digitando" class="msg dela digitando" hidden aria-hidden="true">
+        <div class="bolha"><i></i><i></i><i></i></div>
+      </div>
+    </main>
+
+    <button id="ir-fim" class="ir-fim" type="button" hidden>
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="ir-fim-texto">Novas mensagens</span>
+    </button>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <textarea id="campo" rows="1" maxlength="4000" placeholder="Escreva uma mensagem"
+                aria-label="Mensagem" enterkeyhint="send"></textarea>
+      <button id="enviar" class="enviar" type="submit" aria-label="Enviar mensagem" disabled>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 12l16-8-5.5 16-3.2-6.3L4 12z" fill="currentColor"/></svg>
+      </button>
+    </form>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
