@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1B1740">
+  <meta name="theme-color" content="#FFF3EE" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#100D26" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
   <title>Só nós · Entrar</title>
 
@@ -13,35 +14,68 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Caveat:wght@600&display=swap">
+  <link rel="stylesheet" href="/css/login.css">
 </head>
 <body class="pagina-login">
-  <main class="login">
-    <div class="venn" aria-hidden="true">
-      <span class="circulo circulo-a"></span>
-      <span class="circulo circulo-b"></span>
-    </div>
 
-    <h1>Só nós</h1>
-    <p class="subtitulo">Entre para continuar a conversa.</p>
+  <!-- Fundo: manchas de cor que se movem devagar e corações que sobem -->
+  <div class="fundo" aria-hidden="true">
+    <span class="mancha mancha-1"></span>
+    <span class="mancha mancha-2"></span>
+    <span class="mancha mancha-3"></span>
+    <div id="coracoes" class="coracoes"></div>
+  </div>
 
-    <form id="form-login" novalidate>
-      <label class="campo-texto">
-        <span>Usuário</span>
-        <input id="login" name="username" type="text" autocomplete="username"
-               autocapitalize="none" autocorrect="off" spellcheck="false" required autofocus>
-      </label>
+  <main class="palco">
+    <section id="cartao" class="cartao" aria-labelledby="titulo">
 
-      <label class="campo-texto">
-        <span>Senha</span>
-        <input id="senha" name="password" type="password" autocomplete="current-password" required>
-      </label>
+      <!-- Dois círculos que se encontram e formam um coração -->
+      <svg class="logo" viewBox="0 0 120 72" width="132" height="79" aria-hidden="true" focusable="false">
+        <circle class="lg-a" cx="44" cy="36" r="30"/>
+        <circle class="lg-b" cx="76" cy="36" r="30"/>
+        <!-- o translate fica num <g> à parte: a animação CSS substituiria um transform no mesmo elemento -->
+        <g transform="translate(48 24)"><g class="lg-pop"><path class="lg-cora" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></g>
+      </svg>
 
-      <p id="erro" class="erro-login" role="alert" hidden></p>
+      <p id="saudacao" class="saudacao">Olá</p>
+      <h1 id="titulo">Só nós</h1>
+      <p class="assinatura">o nosso cantinho</p>
 
-      <button id="entrar" class="botao" type="submit">Entrar</button>
-    </form>
+      <p id="juntos" class="juntos" hidden>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+        <span id="juntos-texto"></span>
+      </p>
+
+      <form id="form-login" novalidate>
+        <div class="campo">
+          <svg class="campo-icone" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.8 19.5c.9-3.3 3.8-5 7.2-5s6.3 1.7 7.2 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="login" name="username" type="text" placeholder=" " autocomplete="username"
+                 autocapitalize="none" autocorrect="off" spellcheck="false" required>
+          <label for="login">Seu usuário</label>
+        </div>
+
+        <div class="campo">
+          <svg class="campo-icone" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="senha" name="password" type="password" placeholder=" " autocomplete="current-password" required>
+          <label for="senha">Sua senha</label>
+          <button id="ver-senha" class="ver-senha" type="button" aria-label="Mostrar senha" aria-pressed="false">
+            <svg class="olho-aberto" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <svg class="olho-fechado" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 3l18 18M10.3 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3.2 3.9M6.6 7.3C4 9 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.5 0 2.9-.4 4.1-1M9.9 9.9a2.8 2.8 0 0 0 4.2 3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <p id="dica-caps" class="dica" hidden>Caps Lock está ligado.</p>
+        <p id="erro" class="erro" role="alert" hidden></p>
+
+        <button id="entrar" class="entrar" type="submit">
+          <span class="entrar-texto">Entrar</span>
+          <span class="entrar-giro" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <p class="rodape">Feito com carinho, só para dois.</p>
+    </section>
   </main>
 
   <script src="/js/login.js"></script>

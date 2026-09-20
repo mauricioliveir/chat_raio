@@ -20,15 +20,25 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="pagina-chat">
+
   <div class="app" id="app">
 
     <header class="cabecalho">
       <div class="avatar" id="avatar" aria-hidden="true"><span id="inicial"></span></div>
       <div class="identidade">
-        <h1 id="nome-parceiro">&nbsp;</h1>
+        <h1><span id="nome-parceiro">&nbsp;</span></h1>
         <p id="status" class="status" aria-live="polite">conectando…</p>
       </div>
-      <button id="sair" class="botao-texto" type="button">Sair</button>
+
+      <div class="menu-conta">
+        <button id="menu-btn" class="botao-icone" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="5" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="19" r="1.8" fill="currentColor"/></svg>
+        </button>
+        <div id="menu-conta" class="popover" role="menu" hidden>
+          <p id="menu-espaco" class="popover-info">Calculando espaço usado…</p>
+          <button id="sair" type="button" role="menuitem">Sair da conta</button>
+        </div>
+      </div>
     </header>
 
     <div id="faixa" class="faixa" role="status" hidden>Sem conexão. Tentando reconectar…</div>
@@ -56,17 +66,85 @@
       <span id="ir-fim-texto">Novas mensagens</span>
     </button>
 
+    <!-- Barra "respondendo a…" / "editando mensagem" -->
+    <div id="contexto" class="contexto" hidden>
+      <div class="contexto-texto">
+        <strong id="contexto-titulo"></strong>
+        <span id="contexto-previa"></span>
+      </div>
+      <button id="contexto-fechar" class="botao-icone botao-icone-suave" type="button" aria-label="Cancelar">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Gravando áudio -->
+    <div id="gravacao" class="gravacao" hidden>
+      <button id="grav-cancelar" class="botao-icone botao-icone-suave" type="button" aria-label="Descartar gravação">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="grav-ponto" aria-hidden="true"></span>
+      <span id="grav-tempo" class="grav-tempo" aria-live="off">0:00</span>
+      <span class="grav-dica">Gravando…</span>
+      <button id="grav-enviar" class="enviar" type="button" aria-label="Enviar áudio">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 12l16-8-5.5 16-3.2-6.3L4 12z" fill="currentColor"/></svg>
+      </button>
+    </div>
+
     <form id="composer" class="composer" autocomplete="off">
+      <button id="anexar" class="botao-icone botao-icone-suave" type="button" aria-label="Enviar foto">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10.5" r="1.7" fill="currentColor"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <input id="arquivo-foto" type="file" accept="image/*" hidden>
+
       <textarea id="campo" rows="1" maxlength="4000" placeholder="Escreva uma mensagem"
                 aria-label="Mensagem" enterkeyhint="send"></textarea>
-      <button id="enviar" class="enviar" type="submit" aria-label="Enviar mensagem" disabled>
+
+      <button id="mic" class="enviar" type="button" aria-label="Gravar áudio">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button id="enviar" class="enviar" type="submit" aria-label="Enviar mensagem" hidden>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 12l16-8-5.5 16-3.2-6.3L4 12z" fill="currentColor"/></svg>
       </button>
     </form>
 
+    <!-- Menu de ações de uma mensagem -->
+    <div id="menu-msg" class="menu-msg" role="menu" hidden></div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   </div>
 
+  <!-- Prévia da foto antes de enviar -->
+  <dialog id="dlg-foto" class="dialogo">
+    <form method="dialog" id="form-foto">
+      <img id="foto-previa" alt="Prévia da foto">
+      <input id="foto-legenda" type="text" maxlength="500" placeholder="Adicionar legenda (opcional)" aria-label="Legenda">
+      <div class="dialogo-botoes">
+        <button value="cancelar" type="submit" class="botao-secundario" formnovalidate>Cancelar</button>
+        <button id="foto-enviar" value="enviar" type="submit" class="botao botao-auto">Enviar foto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmação -->
+  <dialog id="dlg-confirmar" class="dialogo dialogo-pequeno">
+    <form method="dialog">
+      <p id="confirmar-texto"></p>
+      <div class="dialogo-botoes">
+        <button value="cancelar" type="submit" class="botao-secundario">Cancelar</button>
+        <button id="confirmar-ok" value="ok" type="submit" class="botao botao-auto botao-perigo">Apagar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Foto em tela cheia -->
+  <dialog id="dlg-lightbox" class="lightbox" aria-label="Foto">
+    <img id="lightbox-img" alt="Foto ampliada">
+    <div class="lightbox-barra">
+      <a id="lightbox-salvar" class="mini" download="foto.jpg">Salvar</a>
+      <button id="lightbox-fechar" type="button" class="mini mini-suave">Fechar</button>
+    </div>
+  </dialog>
+
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>

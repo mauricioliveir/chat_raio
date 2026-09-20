@@ -1,8 +1,7 @@
 const { Server } = require('socket.io');
 const auth = require('./auth');
 const db = require('./db');
-
-const MAX_CARACTERES = 4000;
+const { ehClientId, validarConteudo } = require('./validar');
 
 const sala = (login) => `user:${login}`;
 
@@ -10,7 +9,7 @@ function iniciarSocket(httpServer) {
   const io = new Server(httpServer, {
     // Sem CORS: só aceitamos conexões vindas da própria página.
     cors: false,
-    maxHttpBufferSize: 20_000, // mensagens são só texto
+    maxHttpBufferSize: 64_000, // só texto trafega aqui; fotos e áudios vão por HTTP
     pingInterval: 20_000,
     pingTimeout: 20_000,
   });
@@ -48,7 +47,7 @@ function iniciarSocket(httpServer) {
 
     socket.join(sala(eu));
 
-    // Limite simples: no máximo 30 mensagens a cada 10 s por conexão.
+    // Limite simples: no máximo 30 ações a cada 10 s por conexão.
     let janela = [];
     const dentroDoLimite = () => {
       const agora = Date.now();
@@ -58,37 +57,63 @@ function iniciarSocket(httpServer) {
       return true;
     };
 
+    /** Envolve um handler: valida o ack, aplica o limite e trata erros de forma uniforme. */
+    const acao = (nome, corpo) =>
+      socket.on(nome, async (payload, ack) => {
+        const responder = typeof ack === 'function' ? ack : () => {};
+        try {
+          if (!dentroDoLimite()) return responder({ ok: false, erro: 'Devagar! Muitas ações seguidas.' });
+          await corpo(payload || {}, responder);
+        } catch (err) {
+          if (err.validacao) return responder({ ok: false, erro: err.message });
+          console.error(`[socket] ${nome}`, err.message);
+          responder({ ok: false, erro: 'Erro no servidor. Tente de novo.' });
+        }
+      });
+
     // Registramos os handlers ANTES de qualquer await, para não perder eventos.
 
-    socket.on('message:send', async (payload, ack) => {
-      const responder = typeof ack === 'function' ? ack : () => {};
-      try {
-        const body = typeof payload?.body === 'string' ? payload.body.trim() : '';
-        const clientId = typeof payload?.clientId === 'string' ? payload.clientId.slice(0, 64) : null;
+    acao('message:send', async (p, responder) => {
+      if (!ehClientId(p.clientId)) return responder({ ok: false, erro: 'Identificador inválido' });
+      const dados = validarConteudo(p.dados);
 
-        if (!body) return responder({ ok: false, erro: 'Mensagem vazia' });
-        if (body.length > MAX_CARACTERES) return responder({ ok: false, erro: 'Mensagem muito longa' });
-        if (!clientId) return responder({ ok: false, erro: 'Identificador ausente' });
-        if (!dentroDoLimite()) return responder({ ok: false, erro: 'Devagar! Muitas mensagens seguidas' });
+      const { mensagem, duplicada } = await db.inserirMensagem({
+        sender: eu,
+        recipient: outro,
+        clientId: p.clientId,
+        dados,
+        entregue: estaOnline(outro),
+      });
 
-        const { mensagem, duplicada } = await db.inserirMensagem({
-          sender: eu,
-          recipient: outro,
-          body,
-          clientId,
-          entregue: estaOnline(outro),
-        });
+      responder({ ok: true, mensagem });
 
-        responder({ ok: true, mensagem });
-
-        if (!duplicada) {
-          socket.to(sala(eu)).emit('message:new', mensagem); // outras abas minhas
-          io.to(sala(outro)).emit('message:new', mensagem);
-        }
-      } catch (err) {
-        console.error('[socket] message:send', err.message);
-        responder({ ok: false, erro: 'Erro ao salvar a mensagem' });
+      if (!duplicada) {
+        socket.to(sala(eu)).emit('message:new', mensagem); // outras abas minhas
+        io.to(sala(outro)).emit('message:new', mensagem);
       }
+    });
+
+    acao('message:edit', async (p, responder) => {
+      if (!Number.isSafeInteger(p.id)) return responder({ ok: false, erro: 'Mensagem inválida' });
+      const dados = validarConteudo(p.dados, { soTexto: true });
+
+      const r = await db.editarMensagem({ id: p.id, sender: eu, dados });
+      if (!r) return responder({ ok: false, erro: 'Não é possível editar esta mensagem.' });
+
+      responder({ ok: true, ...r });
+      socket.to(sala(eu)).emit('message:edited', r);
+      io.to(sala(outro)).emit('message:edited', r);
+    });
+
+    acao('message:delete', async (p, responder) => {
+      if (!Number.isSafeInteger(p.id)) return responder({ ok: false, erro: 'Mensagem inválida' });
+
+      const r = await db.apagarMensagem({ id: p.id, sender: eu });
+      if (!r) return responder({ ok: false, erro: 'Não é possível apagar esta mensagem.' });
+
+      responder({ ok: true, ...r });
+      socket.to(sala(eu)).emit('message:deleted', r);
+      io.to(sala(outro)).emit('message:deleted', r);
     });
 
     socket.on('messages:read', async () => {

@@ -37,6 +37,19 @@ if (usuarios[0].login === usuarios[1].login) {
   process.exit(1);
 }
 
+// Data opcional (AAAA-MM-DD) para mostrar "Juntos há X anos…" na tela de login.
+function lerDataJuntos() {
+  const bruto = (process.env.JUNTOS_DESDE || '').trim();
+  if (!bruto) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(bruto);
+  const d = m && new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  if (!d || d.getUTCFullYear() !== +m[1] || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[3] || d > new Date()) {
+    console.error('\n[ERRO] JUNTOS_DESDE inválido. Use o formato AAAA-MM-DD (ex.: 2019-06-15), com uma data que já passou.\n');
+    process.exit(1);
+  }
+  return bruto;
+}
+
 module.exports = {
   port: Number(process.env.PORT) || 3000,
   isProd: process.env.NODE_ENV === 'production',
@@ -45,4 +58,7 @@ module.exports = {
   jwtSecret,
   usuarios,
   sessaoDias: 30,
+  juntosDesde: lerDataJuntos(),
+  // Limite (em MB) só para EXIBIR o espaço usado. O plano gratuito do Neon tem ~500 MB.
+  limiteArmazenamentoMb: Number(process.env.STORAGE_LIMIT_MB) || 500,
 };

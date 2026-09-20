@@ -1,6 +1,4 @@
-// Fotos e áudios: preparo no aparelho, envio cifrado e leitura com cache.
-
-import { cifrarArquivo, decifrarArquivo, aadMidia } from './cripto.js';
+// Fotos e áudios: preparo no aparelho, envio e leitura com cache.
 
 export const LIMITE_GRAVACAO_SEG = 5 * 60;
 const LIMITE_BYTES = 4 * 1024 * 1024; // depois de comprimir
@@ -47,7 +45,7 @@ export async function prepararFoto(arquivo) {
   }
   if (!blob || blob.size > LIMITE_BYTES) throw new Error('A foto ficou grande demais. Tente outra.');
 
-  // Miniatura minúscula (fica dentro da mensagem cifrada; aparece borrada enquanto a foto carrega)
+  // Miniatura minúscula (vai junto com a mensagem; aparece borrada enquanto a foto carrega)
   const escalaMini = 28 / Math.max(canvas.width, canvas.height);
   const mini = document.createElement('canvas');
   mini.width = Math.max(1, Math.round(canvas.width * escalaMini));
@@ -66,20 +64,16 @@ export async function prepararFoto(arquivo) {
 }
 
 // ---------------------------------------------------------------------------
-// Envio / download cifrados (com cache)
+// Envio / download (com cache)
 // ---------------------------------------------------------------------------
 
-/** Cifra os bytes e devolve o bloco pronto para subir (também usado para tentar de novo). */
-export async function cifrarParaEnvio(chave, id, blob) {
-  return cifrarArquivo(chave, new Uint8Array(await blob.arrayBuffer()), aadMidia(id));
-}
-
-export async function subirArquivo(id, bloco) {
+/** Envia a foto ou o áudio. O tipo vai no cabeçalho e o servidor confere se o arquivo é mesmo desse tipo. */
+export async function subirArquivo(id, blob) {
   const resp = await fetch(`/api/media/${id}`, {
     method: 'POST',
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: bloco,
+    headers: { 'Content-Type': blob.type },
+    body: blob,
   });
   if (resp.status === 401) {
     window.location.replace('/login');
@@ -97,8 +91,8 @@ export function registrarLocal(id, blob) {
   cache.set(id, Promise.resolve(URL.createObjectURL(blob)));
 }
 
-/** Baixa, decifra e devolve uma URL local (blob:) que o navegador consegue exibir/tocar. */
-export function obterUrl(chave, id, mime) {
+/** Baixa o arquivo e devolve uma URL local (blob:) que o navegador consegue exibir/tocar (funciona também no iPhone). */
+export function obterUrl(id, mime) {
   if (!cache.has(id)) {
     const p = (async () => {
       const resp = await fetch(`/api/media/${id}`, { credentials: 'same-origin' });
@@ -107,9 +101,7 @@ export function obterUrl(chave, id, mime) {
         throw new Error('não autenticado');
       }
       if (!resp.ok) throw new Error('Arquivo indisponível');
-      const bloco = new Uint8Array(await resp.arrayBuffer());
-      const claro = await decifrarArquivo(chave, bloco, aadMidia(id));
-      return URL.createObjectURL(new Blob([claro], { type: mime }));
+      return URL.createObjectURL(new Blob([await resp.arrayBuffer()], { type: mime }));
     })();
     p.catch(() => cache.delete(id)); // permite tentar de novo
     cache.set(id, p);
